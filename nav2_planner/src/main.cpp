@@ -15,11 +15,34 @@
 
 #include <memory>
 
+#include <glog/logging.h>
+#include <boost/filesystem.hpp>
+
 #include "nav2_planner/planner_server.hpp"
 #include "rclcpp/rclcpp.hpp"
 
+
+const std::uint16_t kDefaultMaxLogFileSize { 32 };
+
+void writeFailureToFile(const char* data, int size){
+  std::cerr << std::string(data, size) << std::endl;
+  LOG(ERROR) << std::string(data, size);
+}
+
 int main(int argc, char ** argv)
 {
+  
+  auto default_log_dir = boost::filesystem::path(getenv("HOME")).concat("/planner_server");
+  boost::filesystem::create_directory(default_log_dir);
+
+  fLI::FLAGS_max_log_size = kDefaultMaxLogFileSize;
+  fLS::FLAGS_log_dir = default_log_dir.c_str();
+  fLI::FLAGS_logbuflevel = -1;
+
+  google::InitGoogleLogging(argv[0]);
+  google::InstallFailureSignalHandler();
+  google::InstallFailureWriter(writeFailureToFile);
+
   rclcpp::init(argc, argv);
   auto node = std::make_shared<nav2_planner::PlannerServer>();
   rclcpp::spin(node->get_node_base_interface());

@@ -97,6 +97,8 @@ MapServer::on_configure(const rclcpp_lifecycle::State & /*state*/)
     throw std::runtime_error("Failed to load map yaml file: " + yaml_filename);
   }
 
+  RCLCPP_INFO(get_logger(), "After loading!");
+
   // Make name prefix for services
   const std::string service_prefix = get_name() + std::string("/");
 
@@ -114,6 +116,8 @@ MapServer::on_configure(const rclcpp_lifecycle::State & /*state*/)
   load_map_service_ = create_service<nav2_msgs::srv::LoadMap>(
     service_prefix + std::string(load_map_service_name_),
     std::bind(&MapServer::loadMapCallback, this, _1, _2, _3));
+
+  RCLCPP_INFO(get_logger(), "End of the configure!");
 
   return nav2_util::CallbackReturn::SUCCESS;
 }

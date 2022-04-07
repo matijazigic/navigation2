@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.5)
 project(nav2_planner)
 
+set(CMAKE_BUILD_TYPE Release) #Debug, Release
+add_compile_options(-g)
+
+find_package(glog REQUIRED)
+
 find_package(ament_cmake REQUIRED)
 find_package(nav2_common REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -19,10 +24,13 @@ find_package(nav2_costmap_2d REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(nav2_core REQUIRED)
 
+find_package(Boost COMPONENTS system filesystem REQUIRED)
+
 nav2_package()
 
 include_directories(
   include
+  ${Boost_INCLUDE_DIRS}
 )
 
 set(executable_name planner_server)
@@ -58,7 +66,7 @@ add_executable(${executable_name}
   src/main.cpp
 )
 
-target_link_libraries(${executable_name} ${library_name})
+target_link_libraries(${executable_name} ${library_name} ${Boost_LIBRARIES} glog::glog)
 
 ament_target_dependencies(${executable_name}
   ${dependencies}

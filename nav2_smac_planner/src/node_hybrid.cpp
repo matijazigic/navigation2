@@ -715,4 +715,22 @@ bool NodeHybrid::backtracePath(CoordinateVector & path)
   return path.size() > 0;
 }
 
+geometry_msgs::msg::Pose NodeHybrid::getMsg(const nav2_costmap_2d::Costmap2D * costmap, const unsigned int & dim3_size) {
+    geometry_msgs::msg::Pose msg_pose;
+    const Coordinates node_coords =
+      getCoords(getIndex(), costmap->getSizeInCellsX(), dim3_size);
+    msg_pose.position.x = costmap->getOriginX() + (node_coords.x * costmap->getResolution());
+    msg_pose.position.y = costmap->getOriginY() + (node_coords.y * costmap->getResolution());
+
+    tf2::Quaternion tf_q;
+    tf_q.setRPY(0.0, 0.0, NodeHybrid::motion_table.getAngleFromBin(node_coords.theta));
+
+    msg_pose.orientation.x = tf_q.getX();
+    msg_pose.orientation.y = tf_q.getY();
+    msg_pose.orientation.z = tf_q.getZ();
+    msg_pose.orientation.w = tf_q.getW();
+
+    return msg_pose;
+}
+
 }  // namespace nav2_smac_planner

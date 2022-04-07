@@ -440,54 +440,46 @@ PlannerServer::computePlan()
   auto goal = action_server_pose_->get_current_goal();
   auto result = std::make_shared<ActionToPose::Result>();
 
-  try {
-    if (isServerInactive(action_server_pose_) || isCancelRequested(action_server_pose_)) {
-      return;
-    }
-
-    waitForCostmap();
-
-    getPreemptedGoalIfRequested(action_server_pose_, goal);
-
-    // Use start pose if provided otherwise use current robot pose
-    geometry_msgs::msg::PoseStamped start;
-    if (!getStartPose(action_server_pose_, goal, start)) {
-      return;
-    }
-
-    // Transform them into the global frame
-    geometry_msgs::msg::PoseStamped goal_pose = goal->goal;
-    if (!transformPosesToGlobalFrame(action_server_pose_, start, goal_pose)) {
-      return;
-    }
-
-    result->path = getPlan(start, goal_pose, goal->planner_id);
-
-    if (!validatePath(action_server_pose_, goal_pose, result->path, goal->planner_id)) {
-      return;
-    }
-
-    // Publish the plan for visualization purposes
-    publishPlan(result->path);
-
-    auto cycle_duration = steady_clock_.now() - start_time;
-    result->planning_time = cycle_duration;
-
-    if (max_planner_duration_ && cycle_duration.seconds() > max_planner_duration_) {
-      RCLCPP_WARN(
-        get_logger(),
-        "Planner loop missed its desired rate of %.4f Hz. Current loop rate is %.4f Hz",
-        1 / max_planner_duration_, 1 / cycle_duration.seconds());
-    }
-
-    action_server_pose_->succeeded_current(result);
-  } catch (std::exception & ex) {
-    RCLCPP_WARN(
-      get_logger(), "%s plugin failed to plan calculation to (%.2f, %.2f): \"%s\"",
-      goal->planner_id.c_str(), goal->goal.pose.position.x,
-      goal->goal.pose.position.y, ex.what());
-    action_server_pose_->terminate_current();
+  if (isServerInactive(action_server_pose_) || isCancelRequested(action_server_pose_)) {
+    return;
   }
+
+  waitForCostmap();
+
+  getPreemptedGoalIfRequested(action_server_pose_, goal);
+
+  // Use start pose if provided otherwise use current robot pose
+  geometry_msgs::msg::PoseStamped start;
+  if (!getStartPose(action_server_pose_, goal, start)) {
+    return;
+  }
+
+  // Transform them into the global frame
+  geometry_msgs::msg::PoseStamped goal_pose = goal->goal;
+  if (!transformPosesToGlobalFrame(action_server_pose_, start, goal_pose)) {
+    return;
+  }
+
+  result->path = getPlan(start, goal_pose, goal->planner_id);
+
+  if (!validatePath(action_server_pose_, goal_pose, result->path, goal->planner_id)) {
+    return;
+  }
+
+  // Publish the plan for visualization purposes
+  publishPlan(result->path);
+
+  auto cycle_duration = steady_clock_.now() - start_time;
+  result->planning_time = cycle_duration;
+
+  if (max_planner_duration_ && cycle_duration.seconds() > max_planner_duration_) {
+    RCLCPP_WARN(
+      get_logger(),
+      "Planner loop missed its desired rate of %.4f Hz. Current loop rate is %.4f Hz",
+      1 / max_planner_duration_, 1 / cycle_duration.seconds());
+  }
+
+  action_server_pose_->succeeded_current(result);
 }
 
 nav_msgs::msg::Path

@@ -26,6 +26,10 @@
 #include <vector>
 
 #include "nav2_smac_planner/a_star.hpp"
+
+#include "geometry_msgs/msg/pose_array.hpp"
+
+
 using namespace std::chrono;  // NOLINT
 
 namespace nav2_smac_planner
@@ -220,6 +224,13 @@ bool AStarAlgorithm<NodeT>::createPath(
   CoordinateVector & path, int & iterations,
   const float & tolerance)
 {
+  // TODO: visualization
+  static auto node = std::make_shared<rclcpp::Node>("test");
+  static auto pub = node->create_publisher<geometry_msgs::msg::PoseArray>("expansions", 1);
+  geometry_msgs::msg::PoseArray msg;
+  msg.header.stamp = node->now();
+  msg.header.frame_id = "map";
+
   steady_clock::time_point start_time = steady_clock::now();
   _tolerance = tolerance;
   _best_heuristic_node = {std::numeric_limits<float>::max(), 0};
@@ -276,10 +287,16 @@ bool AStarAlgorithm<NodeT>::createPath(
       continue;
     }
 
+    // TODO: visualization Each time we expand a new node 
+    msg.poses.push_back(current_node->getMsg(_costmap, _dim3_size));
+
     iterations++;
 
     // 2) Mark Nbest as visited
     current_node->visited();
+
+    // TODO: visualization
+    pub->publish(msg);
 
     // 2.1) Use an analytic expansion (if available) to generate a path
     expansion_result = nullptr;
@@ -291,6 +308,8 @@ bool AStarAlgorithm<NodeT>::createPath(
 
     // 3) Check if we're at the goal, backtrace if required
     if (isGoal(current_node)) {
+      // On backtrace or failure
+      // TODO: visualization
       return current_node->backtracePath(path);
     } else if (_best_heuristic_node.first < getToleranceHeuristic()) {
       // Optimization: Let us find when in tolerance and refine within reason

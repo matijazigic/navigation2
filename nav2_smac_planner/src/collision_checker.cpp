@@ -25,9 +25,9 @@ GridCollisionChecker::GridCollisionChecker(
   // Convert number of regular bins into angles
   float bin_size = 2 * M_PI / static_cast<float>(num_quantizations);
   angles_.reserve(num_quantizations);
-  for (unsigned int i = 0; i != num_quantizations; i++) {
+
+  for (unsigned int i = 0; i != num_quantizations; i++) 
     angles_.push_back(bin_size * i);
-  }
 }
 
 // GridCollisionChecker::GridCollisionChecker(
@@ -122,7 +122,6 @@ bool GridCollisionChecker::inCollision(
       new_pt.y = wy + oriented_footprint[i].y;
       current_footprint.push_back(new_pt);
     }
-
     footprint_cost_ = footprintCost(current_footprint);
 
     if (footprint_cost_ == UNKNOWN && traverse_unknown) {

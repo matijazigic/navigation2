@@ -438,6 +438,13 @@ public:
    */
   bool backtracePath(CoordinateVector & path);
 
+  /**
+   * @brief TODO
+   * @param 
+   * @return 
+   */
+  geometry_msgs::msg::Pose getMsg(const nav2_costmap_2d::Costmap2D * costmap, const unsigned int & dim3_size);
+
   NodeHybrid * parent;
   Coordinates pose;
 

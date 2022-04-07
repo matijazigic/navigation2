@@ -21,7 +21,7 @@
 #include "Eigen/Core"
 #include "nav2_smac_planner/smac_planner_lattice.hpp"
 
-// #define BENCHMARK_TESTING
+#define BENCHMARK_TESTING
 
 namespace nav2_smac_planner
 {

@@ -267,6 +267,13 @@ public:
    */
   bool backtracePath(CoordinateVector & path);
 
+  /**
+   * @brief TODO
+   * @param 
+   * @return 
+   */
+  geometry_msgs::msg::Pose getMsg(const nav2_costmap_2d::Costmap2D * costmap, const unsigned int & dim3_size) {};
+
   Node2D * parent;
   static float cost_travel_multiplier;
   static std::vector<int> _neighbors_grid_offsets;

@@ -212,6 +212,7 @@ bool NodeLattice::isNodeValid(
   // Convert grid quantization of primitives to radians, then collision checker quantization
   static const double bin_size = 2.0 * M_PI / collision_checker->getPrecomputedAngles().size();
   const double & angle = motion_table.getAngleFromBin(this->pose.theta) / bin_size;
+
   if (collision_checker->inCollision(
       this->pose.x, this->pose.y, angle /*bin in collision checker*/, traverse_unknown))
   {
@@ -246,10 +247,16 @@ bool NodeLattice::isNodeValid(
         // If reversing, invert the angle because the robot is backing into the primitive
         // not driving forward with it
         if (is_backwards) {
-          prim_pose._theta = std::fmod(it->_theta + M_PI, pi_2);
+          prim_pose._theta = std::fmod(it->_theta + M_PI + 0.0001, pi_2);
         } else {
           prim_pose._theta = it->_theta;
         }
+
+        if(prim_pose._theta < 0.0) {
+          std::cout << "FIX!" << std::endl;
+          prim_pose._theta = 2 * M_PI + prim_pose._theta;
+        }
+              
         if (collision_checker->inCollision(
             prim_pose._x,
             prim_pose._y,
@@ -258,6 +265,7 @@ bool NodeLattice::isNodeValid(
         {
           return false;
         }
+
         max_cell_cost = std::max(max_cell_cost, collision_checker->getCost());
       }
     }
@@ -563,7 +571,7 @@ bool NodeLattice::backtracePath(CoordinateVector & path)
         // If reversing, invert the angle because the robot is backing into the primitive
         // not driving forward with it
         if (current_node->isBackward()) {
-          prim_pose.theta = std::fmod(it->_theta + M_PI, pi_2);
+          prim_pose.theta = std::fmod(it->_theta + M_PI + 0.0001, pi_2);
         } else {
           prim_pose.theta = it->_theta;
         }
@@ -579,6 +587,24 @@ bool NodeLattice::backtracePath(CoordinateVector & path)
   }
 
   return path.size() > 0;
+}
+
+geometry_msgs::msg::Pose NodeLattice::getMsg(const nav2_costmap_2d::Costmap2D * costmap, const unsigned int & dim3_size) {
+    geometry_msgs::msg::Pose msg_pose;
+    const Coordinates node_coords =
+      getCoords(getIndex(), costmap->getSizeInCellsX(), dim3_size);
+    msg_pose.position.x = costmap->getOriginX() + (node_coords.x * costmap->getResolution());
+    msg_pose.position.y = costmap->getOriginY() + (node_coords.y * costmap->getResolution());
+
+    tf2::Quaternion tf_q;
+    tf_q.setRPY(0.0, 0.0, NodeLattice::motion_table.getAngleFromBin(node_coords.theta));
+
+    msg_pose.orientation.x = tf_q.getX();
+    msg_pose.orientation.y = tf_q.getY();
+    msg_pose.orientation.z = tf_q.getZ();
+    msg_pose.orientation.w = tf_q.getW();
+
+    return msg_pose;
 }
 
 }  // namespace nav2_smac_planner

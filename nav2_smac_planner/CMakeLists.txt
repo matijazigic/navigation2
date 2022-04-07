@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(nav2_smac_planner)
 
 set(CMAKE_BUILD_TYPE Release) #Debug, Release
+add_compile_options(-g)
 
 find_package(ament_cmake REQUIRED)
 find_package(nav2_common REQUIRED)
